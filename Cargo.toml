@@ -1,0 +1,6 @@
+[workspace]
+members = [
+	"abel3d",
+	"test_unit"
+]
+resolver = "2"

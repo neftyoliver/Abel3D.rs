@@ -1,4 +1,5 @@
-mod core;
+mod citadel;
+mod vk;
 
 #[cfg(test)]
 mod tests {

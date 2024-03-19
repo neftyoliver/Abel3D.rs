@@ -1,5 +1,6 @@
 use std::default::Default;
 use std::sync::Arc;
+use smallvec::SmallVec;
 use crate::citadel::render::{Renderer};
 
 use vulkano::VulkanLibrary;
@@ -10,8 +11,7 @@ use vulkano::instance::InstanceCreateInfo;
 #[derive(Debug)]
 struct VulkanoRenderer {
     vulkano: Arc<Instance>,
-    physical_devices: [Arc<PhysicalDevice>; 1],
-    device: Arc<Device>,
+    device: [Arc<Device>; 4],
     queue: Arc<Queue>
 }
 
@@ -24,10 +24,10 @@ impl Renderer for VulkanoRenderer {
 
 
         //Right now, just one simple physical device is all we need.
-        let physical_devices = Instance::enumerate_physical_devices(&instance)
+        let physical_device = Instance::enumerate_physical_devices(&instance)
             .expect("ERROR: No physical device available").next().unwrap();
 
-        let loc_queue_family_index = &physical_devices
+        let loc_queue_family_index = &physical_device
             .queue_family_properties()
             .iter()
             .enumerate()
@@ -59,15 +59,14 @@ impl Renderer for VulkanoRenderer {
             ..Default::default()
         };
 
-        let cp_physical_device = physical_devices.clone();
+        let cp_physical_device = physical_device.clone();
 
-        let (logical_device, mut queues) = Device::new(physical_devices, device_create_info)
+        let (logical_device, mut queues) = Device::new(cp_physical_device.clone(), device_create_info)
             .unwrap();
 
         VulkanoRenderer {
             vulkano: instance,
-            physical_devices: [cp_physical_device; 1],
-            device: logical_device,
+            device: [logical_device; 4],
             queue:  queues.next().unwrap()
         }
     }

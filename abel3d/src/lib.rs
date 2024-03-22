@@ -1,5 +1,5 @@
-pub mod citadel;
-pub mod resource;
+mod citadel;
+mod resource;
 
 #[cfg(test)]
 mod tests {

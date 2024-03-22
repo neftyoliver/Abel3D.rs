@@ -1,77 +1,79 @@
+use std::sync::Arc;
+use vulkano::device::{Device, DeviceCreateInfo, Queue, QueueCreateInfo, QueueFlags};
+use vulkano::image::Image;
+use vulkano::instance::{Instance, InstanceCreateInfo};
+use vulkano::VulkanLibrary;
+
+#[derive(Debug)]
+pub struct AbelVulkanoRenderer {
+    pub vulkano: Arc<Instance>,
+    pub device: Vec<(Arc<Device>, bool)>,
+    pub queue: Arc<Queue>,
 
 
-pub mod render {
-    use std::sync::Arc;
-    use crate::resource::resource::Resource;
+}
 
-    pub enum AbelResult {
-        SUCCESS
+impl AbelVulkanoRenderer {
+    pub fn new(name: &str) -> AbelVulkanoRenderer {
+        let lib = VulkanLibrary::new().expect("ERROR: No vulkan library.");
+        let mut instance_create_info = InstanceCreateInfo::default();
+        instance_create_info.application_name = Option::from(name.to_string());
+        let instance = Instance::new(lib, instance_create_info).expect("ERROR: Unable to create instance");
+
+
+        //Right now, just one simple physical device is all we need.
+        let physical_device = Instance::enumerate_physical_devices(&instance)
+            .expect("ERROR: No physical device available").next().unwrap();
+
+        let loc_queue_family_index = &physical_device
+            .queue_family_properties()
+            .iter()
+            .enumerate()
+            .position(|(x, y)| {
+                print!("Queue family index[{}]: with features ", x);
+                let result = y.queue_flags.contains(QueueFlags::GRAPHICS) && y.queue_flags.contains(QueueFlags::TRANSFER);
+                if result {
+                    println!("{:?} -> Used!", y.queue_flags);
+                }
+                result
+            }).expect("ERROR: No queue family to use for rendering with transfer.");
+
+        //We need queue create info before creating logical device since the queue is PART OF the device.
+
+        let queue_create_info = QueueCreateInfo {
+            flags: Default::default(),
+            queue_family_index: *loc_queue_family_index as u32,
+            queues: vec![1.0],
+            ..Default::default()
+        };
+
+        //Logical device doesn't need to be more than just one.
+        let device_create_info = DeviceCreateInfo {
+            queue_create_infos: vec![queue_create_info],
+            enabled_extensions: Default::default(),
+            enabled_features: Default::default(),
+            physical_devices: Default::default(),
+            private_data_slot_request_count: 0,
+            ..Default::default()
+        };
+
+        let cp_physical_device = physical_device.clone();
+
+        let (logical_device, mut queues) = Device::new(cp_physical_device.clone(), device_create_info)
+            .unwrap();
+
+        AbelVulkanoRenderer {
+            vulkano: instance,
+            device: vec!((logical_device, true)),
+            queue: queues.next().unwrap()
+        }
     }
+}
 
-    pub enum AbelDeviceRating {
-        UNRATED,
-
-        BronzeD,
-        BronzeC,
-        BronzeB,
-        BronzeA,
-        BronzeS,
-
-        IronD,
-        IronC,
-        IronB,
-        IronA,
-        IronS,
-
-        SilverD,
-        SilverC,
-        SilverB,
-        SilverA,
-        SilverS,
-
-        GoldD,
-        GoldC,
-        GoldB,
-        GoldA,
-        GoldS,
-
-        PlatinumD,
-        PlatinumC,
-        PlatinumB,
-        PlatinumA,
-        PlatinumS,
-
-        DiamondD,
-        DiamondC,
-        DiamondB,
-        DiamondA,
-        DiamondS,
-
-        TitaniumD,
-        TitaniumC,
-        TitaniumB,
-        TitaniumA,
-        TitaniumS,
-
-        MasterB,
-        MasterA,
-        MasterS,
-
-        MightyB,
-        MightyA,
-        MightyS
-    }
-
-    pub struct DeviceInfo {
-        name: String,
-        rating: AbelDeviceRating
-    }
-
-    pub trait Renderer {
-        fn create(name: &str) -> impl Renderer;
-
-        fn upload(resource: dyn Resource) -> AbelResult;
-
-        fn get_device_info(idx: u64) -> Arc<DeviceInfo>;
+#[cfg(test)]
+mod test {
+    #[test]
+    fn test_instance_creation() {
+        //println!("{:?}", a);
     }
 }

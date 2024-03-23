@@ -1,5 +1,6 @@
 mod citadel;
 mod resource;
+mod workflow;
 
 #[cfg(test)]
 mod tests {

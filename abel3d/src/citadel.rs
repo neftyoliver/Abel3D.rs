@@ -1,9 +1,9 @@
 use std::sync::Arc;
 use vulkano::device::{Device, DeviceCreateInfo, Queue, QueueCreateInfo, QueueFlags};
-use vulkano::image::Image;
 use vulkano::instance::{Instance, InstanceCreateInfo};
-use vulkano::memory::allocator::{GenericMemoryAllocator, GenericMemoryAllocatorCreateInfo, StandardMemoryAllocator};
+use vulkano::memory::allocator::{StandardMemoryAllocator};
 use vulkano::VulkanLibrary;
+use crate::workflow::AbelInstructionBuilder;
 
 #[derive(Debug)]
 pub struct AbelVulkanoRenderer {
@@ -71,6 +71,10 @@ impl AbelVulkanoRenderer {
             queue: queues.next().unwrap(),
             allocator: Arc::new(memory_allocator)
         }
+    }
+
+    fn consume_commands(&self) {
+
     }
 }
 

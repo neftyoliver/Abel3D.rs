@@ -2,6 +2,7 @@ use std::sync::Arc;
 use vulkano::device::{Device, DeviceCreateInfo, Queue, QueueCreateInfo, QueueFlags};
 use vulkano::image::Image;
 use vulkano::instance::{Instance, InstanceCreateInfo};
+use vulkano::memory::allocator::{GenericMemoryAllocator, GenericMemoryAllocatorCreateInfo, StandardMemoryAllocator};
 use vulkano::VulkanLibrary;
 
 #[derive(Debug)]
@@ -9,7 +10,7 @@ pub struct AbelVulkanoRenderer {
     pub vulkano: Arc<Instance>,
     pub device: Vec<(Arc<Device>, bool)>,
     pub queue: Arc<Queue>,
-
+    pub allocator: Arc<StandardMemoryAllocator>
 
 }
 
@@ -62,10 +63,13 @@ impl AbelVulkanoRenderer {
         let (logical_device, mut queues) = Device::new(cp_physical_device.clone(), device_create_info)
             .unwrap();
 
+        let memory_allocator = StandardMemoryAllocator::new_default(logical_device.clone());
+
         AbelVulkanoRenderer {
             vulkano: instance,
             device: vec!((logical_device, true)),
-            queue: queues.next().unwrap()
+            queue: queues.next().unwrap(),
+            allocator: Arc::new(memory_allocator)
         }
     }
 }

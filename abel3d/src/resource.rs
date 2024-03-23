@@ -16,7 +16,7 @@ struct AbelImage {
 impl AbelImage {
     fn to_vulkano_image(self, renderer: AbelVulkanoRenderer) -> Arc<Image> {
         Image::new(
-            Default::default(),
+            renderer.allocator.clone(),
             ImageCreateInfo {
                 flags: Default::default(),
                 image_type: ImageType::Dim2d,
@@ -34,7 +34,7 @@ impl AbelImage {
                 drm_format_modifiers: vec![],
                 drm_format_modifier_plane_layouts: vec![],
                 external_memory_handle_types: Default::default(),
-                _ne: Default::default()
+                ..Default::default()
             },
             AllocationCreateInfo {
                 memory_type_filter: MemoryTypeFilter::PREFER_DEVICE,
